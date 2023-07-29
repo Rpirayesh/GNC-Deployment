@@ -1,0 +1,65 @@
+import numpy as np
+from scipy.optimize import minimize
+
+# The provided data: masses and corresponding velocities
+masses = np.array([0.977312333105838, 1.307330422279501, 1.570676985667809, 1.7678291003783486, 1.932420702496041, 2.296311266308417, 2.9940365361551566, 4.625282436273762, 5.758340566794109, 6.391421888562739, 8.226260444344318, 10.762283079002646, 12.597837250445606, 15.234880962635588, 16.636891312558397, 17.53808996879121, 18.23927404766795, 19.307688230110195, 20.509564733400037, 21.344330402401287, 22.546445444244927, 23.414248702946615, 24.015365858506883])
+velocities = np.array([2.886111092705358, 2.6505277665502684, 2.422060840583359, 2.2292819326923716, 2.086490103963053, 1.8794916478375816, 1.6654828086589495, 1.3589872713177267, 1.2165797547028536, 1.1311166917353015, 1.0175590879875958, 0.8971368747473809, 0.8264366978312871, 0.7560545723202514, 0.720896639919427, 0.6926828298623762, 0.6858182203698671, 0.6719564799660747, 0.6510048436578559, 0.6441932427328569, 0.6375274153685089, 0.6093003531695809, 0.6095388917233748])
+
+
+# The differential equation governing the mass-spring-damper system
+# y is the current state: [x, v], where x is displacement and v is velocity
+# def equation(t, y, b, k, m):
+#     x, v = y
+#     dxdt = v  # derivative of displacement is velocity
+#     dvdt = -(b/m)*v - k*x/m  # derivative of velocity from the second law of motion
+#     return np.array([dxdt, dvdt])
+
+# Differential equations
+def equation(t, y, b, k, m):
+    x, v = y
+    dxdt = v
+    dvdt = -(b/m)*v - k*x/m
+    return np.array([dxdt, dvdt])
+
+# A function that performs one step of the 4th order Runge-Kutta method
+# equation is the function that computes the derivative of the state
+def runge_kutta_4th_order(equation, t, y, dt, b, k, m):
+    k1 = dt * equation(t, y, b, k, m)
+    k2 = dt * equation(t + dt/2, y + k1/2, b, k, m)
+    k3 = dt * equation(t + dt/2, y + k2/2, b, k, m)
+    k4 = dt * equation(t + dt, y + k3, b, k, m)
+    y_next = y + (k1 + 2*k2 + 2*k3 + k4) / 6  # the new state
+    return y_next
+
+# A function that solves the differential equation over a time interval from t0 to t1
+# using the 4th order Runge-Kutta method
+def solve_differential_equation(y0, t0, t1, dt, equation, b, k, m):
+    num_steps = int((t1 - t0) / dt)
+    t = t0
+    y = y0
+    result = [(t0, y0)]
+    for _ in range(num_steps):
+        y = runge_kutta_4th_order(equation, t, y, dt, b, k, m)
+        t += dt
+        result.append((t, y))
+    return result
+
+# The objective function for the optimization: the sum of squared errors
+# between the simulated velocities and the real velocities
+def loss(params):
+    k, b = params
+    loss_value = 0
+    for m, v_real in zip(masses, velocities):
+        x_init = [0, v_real]
+        sol = solve_differential_equation(x_init, 0, 10, 0.01, equation, b, k, m)
+        v_sim = sol[-1][1][1]  # simulated velocity
+        loss_value += (v_sim - v_real)**2  # squared error
+    return loss_value
+
+# Perform the optimization using the Nelder-Mead method
+initial_guess = [10, 10]  # initial guess for k and b
+res = minimize(loss, initial_guess, method='Nelder-Mead')
+
+# Print the optimized parameters
+k_opt, b_opt = res.x
+print(f"Optimized parameters: k = {k_opt}, b = {b_opt}")
