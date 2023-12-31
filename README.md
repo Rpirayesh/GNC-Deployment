@@ -1,8 +1,8 @@
 # GNC-Deployment
-Taske: take the CSD 3U 2-spring data from the CSD datasheet (data in code) and derive the equivalent spring parameters k and b such that the mass-spring-damper model can accurately predict the ejection velocity of the dispenser for the range of spacecraft (payload) masses from 3kg to 15kg. 
 
-This code is designed to solve a common physics problem: finding the parameters of a spring-mass-damper system given some measurements of the velocities of the masses.
+Task: Extract the 2-spring data (CSD 3U) from the CSD datasheet (data provided in code) and calculate the spring parameters, k and b, that allow the mass-spring-damper model to effectively predict the ejection velocity of the dispenser for spacecraft (payload) masses.
 
+This code is intended to address a common physics challenge: determining the spring-mass-damper system parameters based on velocity measurements of the masses.
     First, the masses and corresponding velocities are recorded as numpy arrays. These represent the real data of the system, with each pair of corresponding mass-velocity values indicating a measurement.
 
     The differential equation that governs the behavior of the spring-mass-damper system is defined. This equation is derived from Newton's second law of motion, and describes how the velocity and displacement of the mass change over time due to the forces exerted by the spring and the damper.
